@@ -62,22 +62,68 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+% turn y outputs into classification vectors
+%y_class = zeros(m,10); %DO NOT HARDCODE 10 !!!!
+%for i = 1:m
+%  y_class(i, y(i)) = 1;
+%end
 
+% clever solution to turn y entries in logical vectors 
+y_class = [1:num_labels] == y;
+ 
+% add ones to X
+X = [ones(m, 1) X];
 
+% Forward propagation in NN:
+% hidden layer:
+z2 = X * Theta1';
+a2 = sigmoid(z2);
+% Add ones to the a2 data matrix
+a2 = [ones(m, 1) a2];
 
+% output layer:
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
 
+% cost function with for loop over training examples
+%cost = 0;
+%for i = 1:m
+%  cost = cost + (-y_class(i,:)*log(a3(i,:))' - (1-y_class(i,:))*log(1-a3(i,:))');
+%end
+%cost = 1/m * cost
 
+% vectorized version of cost function using matrix multiplication
+cost = -1/m * sum((y_class.*log(a3) + (1-y_class).*log(1-a3))(:))
 
+% compute regularization term
+% column index starts from 2 to exclude bias terms
+reg_term = lambda/(2*m) * sum(...
+  [Theta1(1:end, 2:end)(:) ;...
+   Theta2(1:end, 2:end)(:)].^2);
 
+J = cost + reg_term;
 
+% backpropagation
+DELTA2 = zeros(num_labels, hidden_layer_size+1);
+DELTA1 = zeros(hidden_layer_size, input_layer_size+1);
+for i = 1:m
+  a1 = X(i,:)';
+  z2 = Theta1*a1;
+  a2 = [1 ; sigmoid(z2)];
+  z3 = Theta2*a2;
+  a3 = sigmoid(z3);
+  delta3 = a3 - y_class(i,:)';
+  delta2 = Theta2'*delta3.*sigmoidGradient([1 ; z2]);
+  DELTA2 = DELTA2 + delta3 * a2';
+  DELTA1 = DELTA1 + delta2(2:end)*a1';
+end
 
-
-
-
-
-
-
-
+% add regularization to Delta matrices. Nothing should be added to
+% the first columns, which are the bias terms.
+Theta1_grad = 1/m*DELTA1 + ...
+  lambda/m * horzcat(zeros(hidden_layer_size, 1),Theta1(:,2:end));
+Theta2_grad = 1/m*DELTA2 + ...
+  lambda/m * horzcat(zeros(num_labels, 1),Theta2(:,2:end));
 
 
 % -------------------------------------------------------------
