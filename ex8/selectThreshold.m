@@ -23,17 +23,26 @@ for epsilon = min(pval):stepsize:max(pval)
     % Note: You can use predictions = (pval < epsilon) to get a binary vector
     %       of 0's and 1's of the outlier predictions
 
+    predictions = (pval < epsilon);
+    
+    % compute the number of true positives, when predictions 
+    % agree with the given y values on outliers
+    truePos = sum((predictions == yval) & predictions);
 
+    % compute number of false positives when predictions
+    % are incorrectly set to 1
+    falsePos = sum((predictions ~= yval) & predictions);
 
+    % compute the number of false negatives when predictions
+    % are incorrectly set to 0
+    falseNeg = sum((predictions ~= yval) & yval);
 
+    % compute the precision
+    prec = truePos/(truePos + falsePos);
+    % compute recall
+    rec = truePos/(truePos + falseNeg);
 
-
-
-
-
-
-
-
+    F1 = 2*prec*rec/(prec + rec);
 
     % =============================================================
 

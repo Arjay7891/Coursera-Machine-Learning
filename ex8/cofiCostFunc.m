@@ -40,18 +40,26 @@ Theta_grad = zeros(size(Theta));
 %                     partial derivatives w.r.t. to each element of Theta
 %
 
+predictions = X*Theta';
+differences = predictions(R==1) - Y(R==1);
+J = 1/2*differences'*differences + ...
+    lambda/2*(sum(X(:).^2) + sum(Theta(:).^2));
 
+for i = 1:num_movies
+    % create index list for users that have rated movie i
+    idx = find(R(i, :)==1);
+    differences_i = predictions(i, idx) - Y(i, idx);
+    X_grad(i,:) = differences_i * Theta(idx, :) + ...
+        lambda*X(i,:);
+end
 
-
-
-
-
-
-
-
-
-
-
+for j = 1:num_users
+    % create index list for movies rated by user j
+    idx = find(R(:, j)==1);
+    differences_j = predictions(idx, j) - Y(idx, j);
+    Theta_grad(j,:) = differences_j' * X(idx, :) + ...
+        lambda*Theta(j,:);
+end
 
 
 
